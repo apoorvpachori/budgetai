@@ -9,7 +9,8 @@
 
 ## Product constraints
 
-- This is an open-source app that people run and control themselves. Keep the default deployment small, understandable, and local-first.
+- This is an open-source personal desktop app that users install and control themselves. Keep the default installation small, understandable, and local-first.
+- MVP is single-user and single-device. Do not expose a server on the LAN or add remote access or sync without a scope change.
 - MVP supports one credit-card account per installation. Keep the schema extendable to more accounts without building multi-account UI or workflows now.
 - Prioritize correctness and reviewability of imported financial data over automation or visual polish.
 - Do not imply that a feature exists until it has been implemented. Keep `README.md` and `docs/architecture.md` aligned with the code.

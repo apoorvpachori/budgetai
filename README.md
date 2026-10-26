@@ -1,8 +1,8 @@
 # BudgetAI
 
-BudgetAI is a self-hosted budgeting app built around a simple workflow: import a credit-card statement, review and categorize its transactions, explore spending, and ask questions about the data in natural language.
+BudgetAI is a self-hosted personal budgeting app built around a simple workflow: import a credit-card statement, review and categorize its transactions, explore spending, and ask questions about the data in natural language. The intended MVP is a desktop app that runs on the owner's computer and keeps its database there; it is not a shared LAN or hosted service.
 
-The goal is a private, understandable alternative to services such as Mint or Rocket Money. Each installation belongs to the person or household running it; the project should not require a BudgetAI account or a BudgetAI-hosted backend.
+The goal is a private, understandable alternative to services such as Mint or Rocket Money. Each installation belongs to the person or household running it; the project should not require a BudgetAI account, a BudgetAI-hosted backend, or a network-accessible server.
 
 ## Project status
 
@@ -22,12 +22,13 @@ The first importer targets one Chase Sapphire Preferred card and assumes USD. Ow
 
 ## Architecture direction
 
-- **Monorepo:** `apps/web` contains the browser UI; `apps/api` contains the backend; `deploy` contains self-hosting configuration; `docs` contains design and operating guidance.
-- **Frontend:** React with TypeScript and Vite. This is a client-rendered app; the Python API owns the product logic and data. Vite provides the development server and static production build.
-- **Backend:** Python with FastAPI. Use a modular monolith, with HTTP routes kept thin and product logic in application/domain services.
-- **API contract:** REST endpoints under `/api/v1`. FastAPI's OpenAPI schema is the source for frontend API types.
-- **Persistence:** SQLite for the one-account, single-installation MVP, stored in a persistent mounted data directory. Use SQLAlchemy for database access and Alembic for schema migrations. Keep database access behind a small persistence layer; only consider a second database when an actual deployment need calls for it.
-- **Self-hosting:** Aim for one Docker Compose service and one persistent data volume for the first release. Build the Vite frontend into static assets and serve them from the same origin as the API. Do not require a separate database container or external account for a basic installation.
+- **Monorepo:** `apps/desktop` contains the desktop shell, `apps/ui` contains its React interface, and `apps/api` contains the local Python backend. `deploy` contains desktop packaging guidance; `docs` contains product and operating guidance.
+- **Desktop shell:** A Tauri shell is the current candidate. It opens the React/Vite interface in an app window; the owner does not need to open a browser or expose the app to the network.
+- **Frontend:** React with TypeScript and Vite. Keep it as a client-rendered interface that can run in the desktop webview and during browser-based development.
+- **Backend:** Python with FastAPI, launched as a local sidecar/process by the desktop app. Keep routes thin and product logic in application/domain services.
+- **API contract:** REST endpoints under `/api/v1` for communication between the UI and local API. FastAPI's OpenAPI schema is the source for frontend API types.
+- **Persistence:** SQLite for the one-account, single-installation MVP, stored in the operating system's per-user application data directory. Use SQLAlchemy for database access and Alembic for schema migrations.
+- **Local-only operation:** The API must not listen on the LAN or public network. The app should work without an external account or hosted backend; any external AI provider is a separate opt-in connection.
 - **Imports:** Separate file-specific parsing from transaction normalization, duplicate detection, preview, and persistence. The user confirms a preview before it changes stored data.
 - **Categorization:** Deterministic built-in categories and user-editable rules/overrides come first. Model-generated category suggestions can be optional later.
 - **Assistant:** Natural-language requests call a small set of read-only application services for things like spending by category, merchant search, and period comparisons. The assistant must not write transactions or issue arbitrary SQL.
@@ -44,11 +45,13 @@ For detailed product scope and acceptance criteria, see [`docs/prd.md`](docs/prd
 ├── apps/
 │   ├── AGENTS.md             # Shared rules for applications
 │   ├── api/
-│   │   └── AGENTS.md         # Python/FastAPI backend rules
-│   └── web/
-│       └── AGENTS.md         # React/Vite frontend rules
+│   │   └── AGENTS.md         # Python/FastAPI local backend rules
+│   ├── desktop/
+│   │   └── AGENTS.md         # Desktop shell and packaging rules
+│   └── ui/
+│       └── AGENTS.md         # React/Vite desktop interface rules
 ├── deploy/
-│   └── AGENTS.md             # Self-hosting and container rules
+│   └── AGENTS.md             # Desktop packaging and release rules
 └── docs/
     ├── AGENTS.md             # Documentation maintenance rules
     ├── architecture.md       # System design and current decisions
@@ -59,22 +62,22 @@ Every tracked project directory has a scoped `AGENTS.md`. `.git` and future gene
 
 ## Development
 
-There is no runnable application yet, so development and deployment commands will be added when the initial frontend and API are scaffolded. The intended local workflow is to run Vite and FastAPI separately, with Vite proxying `/api` requests to the backend. The intended self-host workflow is Docker Compose with the application data stored in a named or bind-mounted volume.
+There is no runnable application yet, so development and packaging commands will be added when the desktop shell, frontend, and API are scaffolded. The intended developer workflow is to run Vite and FastAPI locally and launch the desktop shell in development mode. A release should install as a desktop app and store data in the user's OS application-data directory; Docker is not required for normal use.
 
 Do not put real credit-card statements or transaction exports in the repository. Use synthetic or explicitly sanitized sample data for development documentation and examples.
 
-## Privacy and deployment expectations
+## Privacy and local operation
 
-- The user controls the host, database, and backups.
+- The app runs under the user's OS account; the user controls the database and backups on their computer.
 - Financial data stays on that host unless the user explicitly configures an external model provider.
 - External AI requests, when implemented, must be opt-in and documented with what data is sent.
 - A basic local installation should not need a cloud account, bank-linking provider, or telemetry service.
-- Deployment guidance must explain persistent storage, backup/restore, network binding, and any authentication requirements before recommending exposure beyond the local machine.
+- The local API must not be exposed to other devices on the network. Guidance must explain storage, backup/restore, desktop updates, and any optional external model-provider data flow.
 
 ## Decisions still to make
 
 - Which Chase Sapphire Preferred statement format the first importer will support (PDF, CSV, or both).
-- The first-run and authentication experience for a single-user installation, especially when reachable on a home network.
+- Which desktop shell and packaging approach to use, and which operating systems to target first.
 - Which local or external model providers, if any, will be supported by the first assistant implementation.
 - The exact charting and UI component libraries.
 - The default display locale for dates and numbers; transaction amounts are assumed to be USD.
@@ -85,6 +88,9 @@ Keep these decisions visible here until implementation settles them. Avoid intro
 
 - [React: Creating a React App](https://react.dev/learn/creating-a-react-app)
 - [Vite: Getting Started](https://vite.dev/guide/)
+- [Tauri: Frontend configuration](https://v2.tauri.app/start/frontend/)
+- [Tauri: Bundling sidecars](https://v2.tauri.app/develop/sidecar/)
+- [Tauri: Distribution and signing](https://v2.tauri.app/distribute/)
 - [FastAPI: Features and automatic API documentation](https://fastapi.tiangolo.com/features/)
 - [SQLAlchemy ORM](https://docs.sqlalchemy.org/en/20/orm/)
 - [Alembic Tutorial](https://alembic.sqlalchemy.org/en/latest/tutorial.html)

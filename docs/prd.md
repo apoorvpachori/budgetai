@@ -7,7 +7,7 @@
 
 ## 1. Summary
 
-BudgetAI is a self-hosted personal spending app inspired by the useful parts of Rocket Money: a clear spending overview, categorized transactions, simple budgets, recurring-charge awareness, and a conversational assistant. The first release is intentionally grounded in one source of data: statements the owner uploads for one credit-card account.
+BudgetAI is a self-hosted personal desktop app inspired by the useful parts of Rocket Money: a clear spending overview, categorized transactions, simple budgets, recurring-charge awareness, and a conversational assistant. The owner installs and runs it on their own computer; v1 is not a network-accessible server or shared service. The first release is intentionally grounded in one source of data: statements the owner uploads for one credit-card account.
 
 The owner imports Chase Sapphire Preferred statements for any month from January 2026 onward, reviews the parsed transactions, corrects categories, and sees where card spending went. Months may be uploaded in any order and gaps are allowed; the app must make missing coverage visible. The owner can then ask questions such as “How much did I spend on restaurants last month?” The assistant must calculate from the imported data and show its date range and supporting transactions or totals.
 
@@ -21,7 +21,7 @@ Make it easy for a person to understand and explore their own spending without h
 
 ### Product principles
 
-1. **User-owned data:** The app is self-hosted; a basic installation needs no BudgetAI account, cloud database, or bank-linking provider.
+1. **User-owned data:** The app runs locally; a basic installation needs no BudgetAI account, cloud database, network-accessible service, or bank-linking provider.
 2. **Trust before cleverness:** Imported rows, totals, categorization, and assistant answers must be inspectable and correctable.
 3. **Show the coverage:** Every spending view and answer makes clear which card and dates it covers.
 4. **Automation stays reviewable:** Rules and AI can help organize data, but must not silently erase or rewrite financial records.
@@ -31,7 +31,7 @@ Make it easy for a person to understand and explore their own spending without h
 
 ### Primary user
 
-A person or household that wants a private way to review one credit card’s recent spending. They are willing to run a self-hosted app and upload statement exports manually. They may not want to connect bank credentials or use a hosted budgeting provider.
+A person or household that wants a private way to review one credit card’s spending on their own computer. They install a desktop app and upload statement files manually. They may not want to connect bank credentials or use a hosted budgeting provider.
 
 ### Primary job to be done
 
@@ -39,7 +39,7 @@ A person or household that wants a private way to review one credit card’s rec
 
 ### Assumptions for the first release
 
-- One local installation is used by one person or household. Multi-user identity and sharing are not part of v1.
+- One desktop installation is used by one person or household on one computer. Multi-user identity, sharing, LAN access, and multi-device sync are not part of v1.
 - The first supported account is a Chase Sapphire Preferred credit card.
 - The initial reporting window begins January 1, 2026. The owner may import any available statement month from then onward, in any order, without needing every month. Later statements remain importable as they arrive; there is no two-statement or two-month history cap.
 - The first importer will support one Chase statement layout. Whether the owner uploads a PDF statement or a CSV/other transaction export remains open until a representative file is available.
@@ -57,12 +57,13 @@ A person or household that wants a private way to review one credit card’s rec
 - Let the owner set simple monthly category budgets and see progress against the imported card data.
 - Answer natural-language spending questions from the same calculations used by the dashboard.
 - Make the limits of the card-only data obvious in the UI and assistant.
-- Keep the default installation self-hosted and local-first.
+- Ship as a locally installed desktop app with data stored on the owner's computer; do not expose a server on the home network.
 
 ### Explicit non-goals for MVP
 
 - Bank linking, credential storage, or automatic transaction syncing.
 - More than one card/account per installation, account sharing, or hosted multi-tenant service.
+- Access from other devices over a LAN, remote access, or multi-device sync.
 - Full net-worth, checking-account cash-flow, income, savings, or debt-planning views.
 - Canceling subscriptions, negotiating bills, moving money, or contacting merchants.
 - Credit-score monitoring, credit reports, investment tracking, or financial advice.
@@ -74,7 +75,7 @@ A person or household that wants a private way to review one credit card’s rec
 
 ### P0: required for first usable release
 
-1. Single-user self-hosted setup with persistent local storage.
+1. Single-user desktop app with persistent local storage under the owner’s OS account; no network-accessible service is required.
 2. Upload one or more Chase Sapphire Preferred statement files for any month from January 2026 onward, including gaps or out-of-order months.
 3. Parse one agreed Chase source format, treat transaction amounts as USD, validate the rows, detect exact and likely duplicates, and show a preview before commit.
 4. Store a normalized transaction ledger with search and filters.
@@ -100,7 +101,7 @@ A person or household that wants a private way to review one credit card’s rec
 
 ### Journey A: first setup and import
 
-1. The owner starts the self-hosted app and sees that data stays in this installation and that only uploaded card statements are included.
+1. The owner launches the desktop app and sees that data stays on this computer and that only uploaded card statements are included.
 2. The owner selects any available monthly Chase Sapphire Preferred statements from January 2026 onward and uploads them. They can import months out of order or skip months.
 3. The app reports the detected statement period, transaction count, parsed totals, rows needing attention, and suspected duplicates.
 4. The owner reviews the transaction preview, corrects invalid or ambiguous rows where possible, and confirms the import.
@@ -125,14 +126,16 @@ A person or household that wants a private way to review one credit card’s rec
 
 ## 7. Functional requirements and acceptance criteria
 
-### FR-1: local installation and first-run context
+### FR-1: local desktop installation and first-run context
 
-- The application can run as a self-hosted service with persistent data storage and no required BudgetAI cloud account.
+- The application installs and runs as a desktop app under the owner's OS account, with persistent local storage and no required BudgetAI account.
+- Normal use must not require a network-accessible server. The app must not expose its local API to other devices on the network.
 - First run identifies the app as a single-card spending view and explains that answers cover only imported statement data.
 - Do not require full card number, CVV, bank password, or billing credentials. If an import contains sensitive card identifiers, do not persist them.
-- The default network binding and the requirements for LAN access/authentication must be documented before a public release.
+- Store the database in the OS per-user application data directory, not beside the executable or in the repository.
+- If the desktop shell communicates with a local HTTP API, bind it to loopback only and restrict access to the app process.
 
-**Acceptance:** A new installation can be started from the documented self-host path, retains data across restart, and displays an empty state that guides the owner to import a statement.
+**Acceptance:** The owner can launch the installed desktop app, retain data across restart, and see an empty state that guides them to import a statement. No LAN service is required or started.
 
 ### FR-2: statement upload, parsing, and preview
 
@@ -246,13 +249,13 @@ The first empty state should direct the owner to import. The first populated sta
 
 ## 10. Privacy, security, and reliability requirements
 
-- The host owner controls storage and backups; financial data is not sent to analytics or telemetry by default.
+- The computer owner controls storage and backups; financial data is not sent to analytics or telemetry by default.
 - Do not include real credit-card numbers or full descriptions in logs.
 - Process statement files as untrusted input: enforce a documented size limit, validate type/structure, and avoid unsafe file paths or content execution.
 - Delete temporary upload files after processing by default. Persist normalized transactions and minimal import metadata, not source PDFs, unless the owner explicitly enables retention later.
-- Protect the local database through filesystem/container permissions and document backup handling.
+- Protect the local database through OS per-user file permissions and document backup handling.
 - Require user confirmation before any future assistant action that changes financial records or settings.
-- If LAN or internet access is supported, define authentication and transport-security requirements before release; localhost-only is the safe initial default until that design is complete.
+- Do not expose the local API to LAN or internet interfaces. If the app uses a loopback HTTP API, protect it from unrelated local processes and web pages with scoped access controls.
 - Failed parsing, model-provider errors, or unavailable charts must never corrupt saved transactions.
 
 ## 11. Success criteria
@@ -265,7 +268,7 @@ Because a privacy-first self-hosted app should not require product analytics, in
 - A user can correct a category and see that correction reflected in the ledger, dashboard, and budget.
 - A user can answer common spending questions without manually summing transactions.
 - Assistant answers can be independently verified from displayed evidence.
-- A self-hoster can restart the app without losing data and can find the backup/restore instructions.
+- A user can quit and relaunch the desktop app without losing data and can find the backup/restore instructions.
 
 ## 12. Risks and mitigations
 
@@ -279,13 +282,13 @@ Because a privacy-first self-hosted app should not require product analytics, in
 | Payments inflate spending | Classify payment/transfer rows separately and exclude them from spend aggregates by default. |
 | Categorization feels confidently wrong | Make corrections visible, provide a rule option, and preserve manual overrides. |
 | External AI leaks sensitive descriptions | No provider by default; make provider opt-in, disclose sent fields, minimize context, and offer local inference if practical. |
-| Self-hosted app is exposed without access controls | Localhost-safe defaults and clear auth/network requirements before LAN/public exposure. |
+| Local API is accidentally exposed to the network | Bind only to loopback/private local transport, restrict access to the desktop shell, and include a release check that no LAN listener is enabled. |
 
 ## 13. Open decisions before implementation
 
 1. **Chase statement format:** Should the first importer accept Chase Sapphire Preferred PDF statements, transaction CSV exports, or both? A representative file is needed to validate the import preview; a redacted copy is sufficient for planning.
 2. **Statement retention:** Confirm the default of discarding source files after parsing while retaining normalized rows and import metadata.
-3. **Authentication:** Is v1 local-only for one operator, or must it support a password-protected LAN deployment at launch?
+3. **Desktop packaging:** Tauri is the current candidate for a React/Vite shell with the Python API bundled as a local sidecar. Confirm the shell and the operating systems to support first.
 4. **Assistant provider:** Should v1 require a configured external model, bundle/support a local model, or ship chat only when a provider is configured?
 5. **Locale:** Use USD for amounts; choose the default date/number display locale and allow it to be configured.
 These decisions should be resolved before the corresponding implementation slice. Simple monthly category budgets remain in P0 because they are a small, useful part of the Rocket Money-inspired experience; more advanced planning is out of scope. Other requirements can proceed independently.
@@ -293,13 +296,13 @@ These decisions should be resolved before the corresponding implementation slice
 ## 14. Suggested implementation sequence
 
 1. Confirm the Chase Sapphire Preferred file format and get a sanitized representative fixture.
-2. Scaffold the React/Vite frontend, FastAPI API, SQLite persistence, and same-origin self-host shell.
+2. Choose the desktop shell/target OS, then scaffold the React/Vite interface, local FastAPI process, SQLite persistence, and app-data location.
 3. Build the import vertical slice: upload, parse, preview, duplicate handling, confirm, transaction ledger.
 4. Add categories, manual corrections, merchant rules, and consistent spending calculations.
 5. Add overview dashboard and transaction drill-down.
 6. Add simple category budgets.
 7. Add read-only assistant tools and evidence-backed responses over existing analytics services.
-8. Add export/delete, backup guidance, and deployment/auth hardening before calling the release self-host-ready.
+8. Add export/delete, backup guidance, desktop packaging, and a check that the API cannot be reached from the LAN before calling the release ready.
 
 ## 15. Product reference
 
