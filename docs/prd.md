@@ -41,6 +41,7 @@ A person or household that wants a private way to review one credit card’s spe
 
 - One desktop installation is used by one person or household on one computer. Multi-user identity, sharing, LAN access, and multi-device sync are not part of v1.
 - The first supported account is a Chase Sapphire Preferred credit card.
+- The first desktop release targets macOS. The minimum supported macOS version is still to be selected.
 - The initial reporting window begins January 1, 2026. The owner may import any available statement month from then onward, in any order, without needing every month. Later statements remain importable as they arrive; there is no two-statement or two-month history cap.
 - The first importer will support one Chase statement layout. Whether the owner uploads a PDF statement or a CSV/other transaction export remains open until a representative file is available.
 - All imported transaction amounts and budgets are treated as USD for MVP. Multi-currency conversion is out of scope.
@@ -135,7 +136,7 @@ A person or household that wants a private way to review one credit card’s spe
 - Store the database in the OS per-user application data directory, not beside the executable or in the repository.
 - If the desktop shell communicates with a local HTTP API, bind it to loopback only and restrict access to the app process.
 
-**Acceptance:** The owner can launch the installed desktop app, retain data across restart, and see an empty state that guides them to import a statement. No LAN service is required or started.
+**Acceptance:** The owner can launch the installed desktop app on a supported macOS version, retain data across restart, and see an empty state that guides them to import a statement. No LAN service is required or started.
 
 ### FR-2: statement upload, parsing, and preview
 
@@ -288,7 +289,7 @@ Because a privacy-first self-hosted app should not require product analytics, in
 
 1. **Chase statement format:** Should the first importer accept Chase Sapphire Preferred PDF statements, transaction CSV exports, or both? A representative file is needed to validate the import preview; a redacted copy is sufficient for planning.
 2. **Statement retention:** Confirm the default of discarding source files after parsing while retaining normalized rows and import metadata.
-3. **Desktop packaging:** Tauri is the current candidate for a React/Vite shell with the Python API bundled as a local sidecar. Confirm the shell and the operating systems to support first.
+3. **Desktop packaging:** macOS is the first target. Tauri is the current candidate for a React/Vite shell with the Python API bundled as a local sidecar; choose the shell and minimum macOS version.
 4. **Assistant provider:** Should v1 require a configured external model, bundle/support a local model, or ship chat only when a provider is configured?
 5. **Locale:** Use USD for amounts; choose the default date/number display locale and allow it to be configured.
 These decisions should be resolved before the corresponding implementation slice. Simple monthly category budgets remain in P0 because they are a small, useful part of the Rocket Money-inspired experience; more advanced planning is out of scope. Other requirements can proceed independently.
@@ -296,7 +297,7 @@ These decisions should be resolved before the corresponding implementation slice
 ## 14. Suggested implementation sequence
 
 1. Confirm the Chase Sapphire Preferred file format and get a sanitized representative fixture.
-2. Choose the desktop shell/target OS, then scaffold the React/Vite interface, local FastAPI process, SQLite persistence, and app-data location.
+2. Choose the desktop shell and minimum macOS version, then scaffold the React/Vite interface, local FastAPI process, SQLite persistence, and app-data location.
 3. Build the import vertical slice: upload, parse, preview, duplicate handling, confirm, transaction ledger.
 4. Add categories, manual corrections, merchant rules, and consistent spending calculations.
 5. Add overview dashboard and transaction drill-down.

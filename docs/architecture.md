@@ -8,6 +8,7 @@ This document records the architecture selected for the initial implementation. 
 
 - A person can install and run the app on their own computer without creating a vendor account.
 - The MVP is single-device and local-only; it does not provide a LAN-accessible or hosted service.
+- The first desktop distribution target is macOS; support for other operating systems can follow.
 - The MVP handles one credit-card account per installation.
 - The first account is Chase Sapphire Preferred; the MVP treats posted amounts and budgets as USD.
 - Initial reporting starts on January 1, 2026. Statements for any month from then onward can be imported in any order; gaps are allowed and must remain visible.
@@ -121,20 +122,20 @@ Keep the model provider behind an interface. Any external provider must be expli
 
 ## Desktop distribution and operations
 
-The intended first release is a desktop application installed on one computer. The app bundle contains code and UI assets, never the live database or uploaded statements. Store durable data in the OS per-user application data directory. Do not start a LAN service. Tauri is a candidate shell; packaging and supported OSes remain open.
+The intended first release is a desktop application for macOS, installed on one computer. The app bundle contains code and UI assets, never the live database or uploaded statements. Store durable data in the OS per-user application data directory. Do not start a LAN service. Tauri is a candidate shell; the minimum macOS version remains open.
 
-Before calling distribution ready, document installation, supported OSes, app-data location, upgrade/migration behavior, and backup/restore. If the Python API uses localhost HTTP, verify that it cannot bind to a LAN/public interface and that requests are scoped to the desktop app.
+Before calling distribution ready, document macOS installation, the supported version range, app-data location, upgrade/migration behavior, and backup/restore. If the Python API uses localhost HTTP, verify that it cannot bind to a LAN/public interface and that requests are scoped to the desktop app.
 
 ## Open decisions
 
 1. Pick the first Chase Sapphire Preferred statement format (PDF, CSV, or both).
-2. Confirm the desktop shell (Tauri is the current candidate) and supported operating systems.
+2. Confirm the desktop shell (Tauri is the current candidate) and minimum supported macOS version.
 3. Select the assistant provider strategy, including whether any local model is supported.
 4. Select chart and component libraries after the core screens are defined.
 
 ## Initial implementation order
 
-1. Create the runnable desktop shell, React/Vite interface, and local FastAPI development setup, with an OpenAPI contract and a health endpoint.
+1. Create the runnable macOS desktop shell, React/Vite interface, and local FastAPI development setup, with an OpenAPI contract and a health endpoint.
 2. Implement one statement import adapter with preview, normalization, duplicate detection, and confirmation.
 3. Add transaction correction and deterministic categories/rules.
 4. Build dashboard queries, period comparisons, and transaction drill-down.

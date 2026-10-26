@@ -23,7 +23,7 @@ The first importer targets one Chase Sapphire Preferred card and assumes USD. Ow
 ## Architecture direction
 
 - **Monorepo:** `apps/desktop` contains the desktop shell, `apps/ui` contains its React interface, and `apps/api` contains the local Python backend. `deploy` contains desktop packaging guidance; `docs` contains product and operating guidance.
-- **Desktop shell:** A Tauri shell is the current candidate. It opens the React/Vite interface in an app window; the owner does not need to open a browser or expose the app to the network.
+- **Desktop shell:** The first release targets macOS. A Tauri shell is the current candidate. It opens the React/Vite interface in an app window; the owner does not need to open a browser or expose the app to the network.
 - **Frontend:** React with TypeScript and Vite. Keep it as a client-rendered interface that can run in the desktop webview and during browser-based development.
 - **Backend:** Python with FastAPI, launched as a local sidecar/process by the desktop app. Keep routes thin and product logic in application/domain services.
 - **API contract:** REST endpoints under `/api/v1` for communication between the UI and local API. FastAPI's OpenAPI schema is the source for frontend API types.
@@ -77,7 +77,7 @@ Do not put real credit-card statements or transaction exports in the repository.
 ## Decisions still to make
 
 - Which Chase Sapphire Preferred statement format the first importer will support (PDF, CSV, or both).
-- Which desktop shell and packaging approach to use, and which operating systems to target first.
+- Which desktop shell and packaging approach to use, and the minimum supported macOS version. macOS is the first target; other operating systems can follow.
 - Which local or external model providers, if any, will be supported by the first assistant implementation.
 - The exact charting and UI component libraries.
 - The default display locale for dates and numbers; transaction amounts are assumed to be USD.
