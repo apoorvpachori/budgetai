@@ -289,7 +289,7 @@ Because a privacy-first self-hosted app should not require product analytics, in
 
 1. **Chase statement format:** Should the first importer accept Chase Sapphire Preferred PDF statements, transaction CSV exports, or both? A representative file is needed to validate the import preview; a redacted copy is sufficient for planning.
 2. **Statement retention:** Confirm the default of discarding source files after parsing while retaining normalized rows and import metadata.
-3. **Desktop packaging:** macOS is the first target. Tauri is the current candidate for a React/Vite shell with the Python API bundled as a local sidecar; choose the shell and minimum macOS version.
+3. **Desktop packaging:** Tauri is selected for the React/Vite shell with the Python API bundled as a local sidecar. Choose the minimum supported macOS version and packaging details.
 4. **Assistant provider:** Should v1 require a configured external model, bundle/support a local model, or ship chat only when a provider is configured?
 5. **Locale:** Use USD for amounts; choose the default date/number display locale and allow it to be configured.
 These decisions should be resolved before the corresponding implementation slice. Simple monthly category budgets remain in P0 because they are a small, useful part of the Rocket Money-inspired experience; more advanced planning is out of scope. Other requirements can proceed independently.
@@ -297,7 +297,7 @@ These decisions should be resolved before the corresponding implementation slice
 ## 14. Suggested implementation sequence
 
 1. Confirm the Chase Sapphire Preferred file format and get a sanitized representative fixture.
-2. Choose the desktop shell and minimum macOS version, then scaffold the React/Vite interface, local FastAPI process, SQLite persistence, and app-data location.
+2. Choose the minimum supported macOS version, then scaffold the Tauri shell, React/Vite interface, local FastAPI process, SQLite persistence, and app-data location.
 3. Build the import vertical slice: upload, parse, preview, duplicate handling, confirm, transaction ledger.
 4. Add categories, manual corrections, merchant rules, and consistent spending calculations.
 5. Add overview dashboard and transaction drill-down.

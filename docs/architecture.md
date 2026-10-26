@@ -18,10 +18,10 @@ This document records the architecture selected for the initial implementation. 
 
 ## Shape: local desktop app with a modular Python backend
 
-Use a desktop shell, a React/Vite interface, and one local Python API process. Tauri is the current candidate, not a final decision. The shell owns startup/shutdown and launches the Python API as a sidecar. The API is private to the app and must not accept connections from other devices. Keep clear backend modules, but do not split the first release into separately deployed services.
+Use Tauri as the desktop shell, a React/Vite interface, and one local Python API process. The shell owns startup/shutdown and launches the Python API as a sidecar. The API is private to the app and must not accept connections from other devices. Keep clear backend modules, but do not split the first release into separately deployed services.
 
 ```text
-Desktop window (candidate: Tauri)
+Tauri desktop window
   └── React + TypeScript + Vite interface
           │ local-only REST calls: /api/v1
           ▼
@@ -39,7 +39,7 @@ In development, Vite and FastAPI can run separately, with the desktop shell load
 
 ```text
 apps/
-  desktop/                     Tauri shell candidate and desktop packaging
+  desktop/                     Tauri shell and desktop packaging
   ui/                           React + TypeScript + Vite desktop interface
   api/                         FastAPI application
     src/budgetai/
@@ -122,14 +122,14 @@ Keep the model provider behind an interface. Any external provider must be expli
 
 ## Desktop distribution and operations
 
-The intended first release is a desktop application for macOS, installed on one computer. The app bundle contains code and UI assets, never the live database or uploaded statements. Store durable data in the OS per-user application data directory. Do not start a LAN service. Tauri is a candidate shell; the minimum macOS version remains open.
+The intended first release is a Tauri desktop application for macOS, installed on one computer. The app bundle contains code and UI assets, never the live database or uploaded statements. Store durable data in the OS per-user application data directory. Do not start a LAN service. The minimum macOS version remains open.
 
 Before calling distribution ready, document macOS installation, the supported version range, app-data location, upgrade/migration behavior, and backup/restore. If the Python API uses localhost HTTP, verify that it cannot bind to a LAN/public interface and that requests are scoped to the desktop app.
 
 ## Open decisions
 
 1. Pick the first Chase Sapphire Preferred statement format (PDF, CSV, or both).
-2. Confirm the desktop shell (Tauri is the current candidate) and minimum supported macOS version.
+2. Choose the minimum supported macOS version and configure Tauri packaging.
 3. Select the assistant provider strategy, including whether any local model is supported.
 4. Select chart and component libraries after the core screens are defined.
 
