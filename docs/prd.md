@@ -9,7 +9,7 @@
 
 BudgetAI is a self-hosted personal spending app inspired by the useful parts of Rocket Money: a clear spending overview, categorized transactions, simple budgets, recurring-charge awareness, and a conversational assistant. The first release is intentionally grounded in one source of data: statements the owner uploads for one credit-card account.
 
-The owner imports roughly the latest two statement periods to get started, reviews the parsed transactions, corrects categories, and sees where card spending went. They can then ask questions such as “How much did I spend on restaurants last month?” The assistant must calculate from the imported data and show its date range and supporting transactions or totals.
+The owner imports Chase Sapphire Preferred statements for any month from January 2026 onward, reviews the parsed transactions, corrects categories, and sees where card spending went. Months may be uploaded in any order and gaps are allowed; the app must make missing coverage visible. The owner can then ask questions such as “How much did I spend on restaurants last month?” The assistant must calculate from the imported data and show its date range and supporting transactions or totals.
 
 This is not a full financial picture. A single card statement cannot show a household’s income, cash balance, other account spending, net worth, or reliable upcoming bill schedule. The interface and assistant must say so clearly.
 
@@ -35,14 +35,15 @@ A person or household that wants a private way to review one credit card’s rec
 
 ### Primary job to be done
 
-“When I upload my recent credit-card statements, help me quickly see where the money went, fix mistakes, compare the last couple of periods, and ask follow-up questions in plain language.”
+“When I upload my credit-card statements from this year, help me see where the money went, fix mistakes, compare the periods I have, and ask follow-up questions in plain language.”
 
 ### Assumptions for the first release
 
 - One local installation is used by one person or household. Multi-user identity and sharing are not part of v1.
-- The owner has at least one statement and ideally two consecutive statement periods. Two periods make comparisons more useful, but the app must work with one.
-- After onboarding, the owner can continue importing later statements. “Last couple of months” is the initial data set, not a hard limit on retained history.
-- The first importer will support one issuer and one selected statement format. The actual issuer and whether the source is CSV, PDF, or another export remain open until a representative file is available.
+- The first supported account is a Chase Sapphire Preferred credit card.
+- The initial reporting window begins January 1, 2026. The owner may import any available statement month from then onward, in any order, without needing every month. Later statements remain importable as they arrive; there is no two-statement or two-month history cap.
+- The first importer will support one Chase statement layout. Whether the owner uploads a PDF statement or a CSV/other transaction export remains open until a representative file is available.
+- All imported transaction amounts and budgets are treated as USD for MVP. Multi-currency conversion is out of scope.
 - The app uses the transaction/posting dates from the statement. A statement’s payment due date or ending balance is not treated as spending.
 
 ## 4. Goals and non-goals
@@ -74,8 +75,8 @@ A person or household that wants a private way to review one credit card’s rec
 ### P0: required for first usable release
 
 1. Single-user self-hosted setup with persistent local storage.
-2. Upload one or more statement files for the same card; initial use should support around two consecutive statement periods.
-3. Parse one agreed source format, validate the rows, detect exact and likely duplicates, and show a preview before commit.
+2. Upload one or more Chase Sapphire Preferred statement files for any month from January 2026 onward, including gaps or out-of-order months.
+3. Parse one agreed Chase source format, treat transaction amounts as USD, validate the rows, detect exact and likely duplicates, and show a preview before commit.
 4. Store a normalized transaction ledger with search and filters.
 5. Assign built-in categories; let the user correct a category and create a simple merchant-based rule.
 6. Provide a spending dashboard with total spend, category breakdown, monthly/statement-period trend, and top merchants.
@@ -100,7 +101,7 @@ A person or household that wants a private way to review one credit card’s rec
 ### Journey A: first setup and import
 
 1. The owner starts the self-hosted app and sees that data stays in this installation and that only uploaded card statements are included.
-2. The owner selects one or two statements from the supported source and uploads them.
+2. The owner selects any available monthly Chase Sapphire Preferred statements from January 2026 onward and uploads them. They can import months out of order or skip months.
 3. The app reports the detected statement period, transaction count, parsed totals, rows needing attention, and suspected duplicates.
 4. The owner reviews the transaction preview, corrects invalid or ambiguous rows where possible, and confirms the import.
 5. The app records the import and displays the coverage range. The original uploaded document is discarded after processing by default; stored transaction rows and import metadata remain.
@@ -135,9 +136,10 @@ A person or household that wants a private way to review one credit card’s rec
 
 ### FR-2: statement upload, parsing, and preview
 
-- The first implementation supports one source layout chosen from a representative statement export.
+- The first implementation supports one Chase Sapphire Preferred source layout chosen from a representative statement export.
+- Accept statement periods from January 2026 onward, including months uploaded out of order and gaps in coverage. Accept later statement periods as they occur.
 - Accept multiple statement files for the same card in one import flow where practical; otherwise permit sequential imports with the same outcome.
-- Extract at minimum: posted/transaction date, original description, amount, currency where available, and statement period/source metadata.
+- Extract at minimum: posted/transaction date, original description, USD amount, and statement period/source metadata.
 - Normalize rows into a canonical transaction model without writing them to the database during parsing.
 - Show parsed, invalid, and suspected-duplicate row counts. Do not silently drop rows.
 - Show statement period and transaction totals. If the file has summary balances, label them separately from transaction spending.
@@ -177,7 +179,9 @@ A person or household that wants a private way to review one credit card’s rec
 
 ### FR-6: spending dashboard
 
-- Show total net card spending for a selected calendar month or statement period, with the date range and coverage visible.
+- Show total net card spending in USD for a selected calendar month or statement period, with the date range and coverage visible.
+- Support year-to-date reporting from January 1, 2026 onward and month selection for any available month in that range.
+- Derive coverage from imported statement-period dates. Show missing or partially covered calendar months as such; never treat an unimported month as zero spending or a partially covered month as complete. Comparisons must identify the exact periods and coverage being compared.
 - Show month-over-month or statement-period comparison when two comparable periods are present. Do not fabricate a comparison when only one period exists.
 - Show category breakdown, spending trend, top merchants, and recent transactions.
 - Chart sections link to the underlying filtered transactions.
@@ -218,7 +222,7 @@ A person or household that wants a private way to review one credit card’s rec
 
 ## 8. Data and calculation rules
 
-- Store monetary values as integer minor units and an explicit currency; do not use floating-point values for money.
+- Store monetary values as integer minor units and an explicit currency; do not use floating-point values for money. MVP imports and budget limits use USD.
 - Use the statement’s posted date for spending views; keep import time separate.
 - Preserve original descriptions alongside normalized merchant names.
 - Store statement period start/end independently from transaction dates.
@@ -226,7 +230,7 @@ A person or household that wants a private way to review one credit card’s rec
 - Credit-card payments are non-spending transfers and excluded from spend totals. The statement’s new balance/minimum payment/due amount is not a measure of purchases for that period.
 - Net spend is purchases and spend-related fees less attributable refunds/credits. Show refunds separately where attribution is uncertain.
 - Budgets use calendar months and posted dates. A statement-cycle view is separately labeled.
-- If transactions contain more than one currency, keep the source currency and do not combine currencies without an explicit conversion source/rate. Multi-currency conversion is outside MVP unless the chosen card format requires it.
+- Multi-currency conversion is outside MVP. If the source includes a foreign-currency original amount as well as the posted USD amount, use the USD posted amount for budgeting and spending totals.
 
 ## 9. Experience and navigation
 
@@ -255,7 +259,7 @@ The first empty state should direct the owner to import. The first populated sta
 
 Because a privacy-first self-hosted app should not require product analytics, initial success is evaluated through acceptance and usability checks rather than default telemetry:
 
-- A new user can import two consecutive statement periods and understand the import coverage without assistance.
+- A new user can import any available statement month from January 2026 onward, including months out of order, and understand which date ranges are complete, partial, or missing.
 - No parsed row disappears silently; the import summary accounts for all rows.
 - Reimporting a statement does not silently double-count it.
 - A user can correct a category and see that correction reflected in the ledger, dashboard, and budget.
@@ -270,7 +274,8 @@ Because a privacy-first self-hosted app should not require product analytics, in
 | Statement layouts vary or change | Start with one source; version its parser; expose row-level errors and keep fixtures synthetic/sanitized. |
 | PDF extraction silently misreads a decimal/date | Preview every row and totals; block confirmation on structural errors; reconcile parsed rows against the statement detail where possible. |
 | Duplicate-looking charges are legitimate | Auto-deduplicate only exact file repeats/high-confidence fingerprints; ask about ambiguous rows. |
-| Two months are mistaken for a complete financial picture | Show imported date coverage and card-only scope in dashboards and chat. |
+| Missing months are mistaken for zero spending or complete coverage | Show statement coverage and gaps explicitly; never plot or answer an unimported month as zero. |
+| Partial-year card history is mistaken for a complete financial picture | Show imported date coverage, year-to-date start date, and card-only scope in dashboards and chat. |
 | Payments inflate spending | Classify payment/transfer rows separately and exclude them from spend aggregates by default. |
 | Categorization feels confidently wrong | Make corrections visible, provide a rule option, and preserve manual overrides. |
 | External AI leaks sensitive descriptions | No provider by default; make provider opt-in, disclose sent fields, minimize context, and offer local inference if practical. |
@@ -278,16 +283,16 @@ Because a privacy-first self-hosted app should not require product analytics, in
 
 ## 13. Open decisions before implementation
 
-1. **First statement source:** Which card issuer and exact file type should be supported first? A synthetic or redacted sample is needed to validate the import preview.
+1. **Chase statement format:** Should the first importer accept Chase Sapphire Preferred PDF statements, transaction CSV exports, or both? A representative file is needed to validate the import preview; a redacted copy is sufficient for planning.
 2. **Statement retention:** Confirm the default of discarding source files after parsing while retaining normalized rows and import metadata.
 3. **Authentication:** Is v1 local-only for one operator, or must it support a password-protected LAN deployment at launch?
 4. **Assistant provider:** Should v1 require a configured external model, bundle/support a local model, or ship chat only when a provider is configured?
-5. **Currency and locale:** Default to detecting currency from source and using a configurable display locale; confirm whether the first importer can assume USD.
+5. **Locale:** Use USD for amounts; choose the default date/number display locale and allow it to be configured.
 These decisions should be resolved before the corresponding implementation slice. Simple monthly category budgets remain in P0 because they are a small, useful part of the Rocket Money-inspired experience; more advanced planning is out of scope. Other requirements can proceed independently.
 
 ## 14. Suggested implementation sequence
 
-1. Confirm the first issuer/file format and get a sanitized representative fixture.
+1. Confirm the Chase Sapphire Preferred file format and get a sanitized representative fixture.
 2. Scaffold the React/Vite frontend, FastAPI API, SQLite persistence, and same-origin self-host shell.
 3. Build the import vertical slice: upload, parse, preview, duplicate handling, confirm, transaction ledger.
 4. Add categories, manual corrections, merchant rules, and consistent spending calculations.

@@ -18,7 +18,7 @@ The first useful release is deliberately narrow:
 4. Show spending by period, category, and merchant; let the owner set simple monthly category budgets.
 5. Answer natural-language questions using the installation's transaction history and show the date range and transactions or totals behind each answer.
 
-The initial import covers roughly two recent statement periods and can grow as the owner adds later statements. The statement issuer and file format are not selected yet. The first importer should target one representative format and use an adapter boundary so additional formats can be added later. Bank connections, multi-card workflows, shared hosted accounts, and financial advice are outside the first MVP. See the PRD for release boundaries, user journeys, requirements, and open decisions.
+The first importer targets one Chase Sapphire Preferred card and assumes USD. Owners can import statements from any month beginning January 2026, in any order and with gaps; the app must show complete, partial, and missing date coverage rather than treating missing months as zero spending. The exact Chase statement format (PDF, CSV, or both) is still to be selected. Bank connections, multi-card workflows, shared hosted accounts, and financial advice are outside the first MVP. See the PRD for release boundaries, user journeys, requirements, and open decisions.
 
 ## Architecture direction
 
@@ -73,10 +73,11 @@ Do not put real credit-card statements or transaction exports in the repository.
 
 ## Decisions still to make
 
-- Which issuer and statement format the first importer will support.
+- Which Chase Sapphire Preferred statement format the first importer will support (PDF, CSV, or both).
 - The first-run and authentication experience for a single-user installation, especially when reachable on a home network.
 - Which local or external model providers, if any, will be supported by the first assistant implementation.
 - The exact charting and UI component libraries.
+- The default display locale for dates and numbers; transaction amounts are assumed to be USD.
 
 Keep these decisions visible here until implementation settles them. Avoid introducing dependencies just to make an undecided feature look complete.
 

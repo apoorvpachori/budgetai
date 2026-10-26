@@ -8,6 +8,8 @@ This document records the architecture selected for the initial implementation. 
 
 - A person can run the app on hardware they control without creating a vendor account.
 - The MVP handles one credit-card account per installation.
+- The first account is Chase Sapphire Preferred; the MVP treats posted amounts and budgets as USD.
+- Initial reporting starts on January 1, 2026. Statements for any month from then onward can be imported in any order; gaps are allowed and must remain visible.
 - Import results are reviewable and correctable before they become trusted data.
 - Dashboard totals and assistant answers use the same transaction semantics.
 - The project remains approachable for contributors and coding agents.
@@ -81,7 +83,7 @@ Parsing must not write to the database. Re-uploading the same statement must not
 
 Represent amounts as integer minor units and include ISO currency. Set and document a consistent sign convention for purchases, refunds, and payments. Preserve transaction date separately from import time. Treat statement rows as untrusted input and report rows that cannot be parsed instead of silently dropping them.
 
-The statement format is unresolved. Choose one real, representative export before implementing the adapter; prefer a predictable CSV export if it contains the needed transaction details, and add PDF/OCR only if that source requires it.
+The exact Chase Sapphire Preferred statement format is unresolved. Choose PDF statements, CSV transaction exports, or both based on a representative file before implementing the adapter. Do not add arbitrary PDF/OCR support; target the selected Chase layout and keep the adapter boundary for later formats.
 
 ## Persistence
 
@@ -122,7 +124,7 @@ Before calling deployment ready, document first run, upgrade/migration behavior,
 
 ## Open decisions
 
-1. Pick the initial card issuer and statement file format.
+1. Pick the first Chase Sapphire Preferred statement format (PDF, CSV, or both).
 2. Decide whether the first release is local-only by default or has a minimal single-user login for LAN access.
 3. Select the assistant provider strategy, including whether any local model is supported.
 4. Select chart and component libraries after the core screens are defined.
